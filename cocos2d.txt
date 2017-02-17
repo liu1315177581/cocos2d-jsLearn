@@ -1,0 +1,8 @@
+http://www.cocos2d-x.org/wiki/Cocos2d-js	英文网站
+http://cn.cocos2d-x.org/			中文网站
+
+http://discuss.cocos2d-x.org/category/javascript	英文论坛
+http://www.cocoachina.com/bbs/thread.php?fid=59		中文论坛
+
+我学院
+http://www.h5edu.cn/   h5网站
