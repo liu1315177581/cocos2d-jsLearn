@@ -6,5 +6,238 @@ http://www.cocoachina.com/bbs/thread.php?fid=59		中文论坛
 
 我学院
 http://www.h5edu.cn/   h5网站
+http://i.youku.com/lingjianfeng  凌建风视频
 
 http://blog.csdn.net/iamzgx/article/details/54232599	最新的博客入门文档
+
+
+1，建立第一个HelloWorld
+	在目录中输入 cocos new -l js test
+		cocos是Cocos2d Console 统一的命令入口
+		new表示新建一个项目
+		-l表示后续的‘js’是我们需要建立的项目类型
+		test是我们项目的名称
+
+2，cc.log()
+	接收多个参数，第一个参数是格式化字符串，
+	后续参数对应格式化字符串中的变量
+	var trace = function(){
+		cc.log(Array.prototype.join.call(argument,','));
+	};
+
+3，Cocos2d坐标系
+	cocos2d坐标系与canvas相反,坐标跟中学时的坐标一样
+
+4，Scene(场景)组成了Cocos2d世界
+	cc.loaderScene.preload(g_resource,function(){		//预加载g_resource完成后，回调函数
+		cc.director.runScence(new HelloWorldScene());	//新建一个类型为Hello WorldScene的场景，并显示这个场景
+	},this);
+
+	cocos2d是使用场景拆分游戏界面，能让游戏结构更清晰，代码更便于维护，而且有利于运行时的性能优化。
+	场景切换的时候，cocos2d-js的框架会把前者销毁，该场景中包含的图片、文本等资源都会被清除。
+
+5，cocos2d世界物体的祖宗—节点（Node）
+	节点封装了一些基本的操作或功能，例如缩放、坐标变化、缩放变化、透明度、可见性等。
+	节点可以包含子节点，实现一个整体的效果。
+
+6，让2D世界层次化—层(Layer)
+    6.1  按层管理所有物体
+	
+	  “层”继承了节点，加入了更多功能，例如背景颜色。
+
+	    “层”更符合我们对世界的认识，就好像百货大厦，每一层销售的商品种类都不一样。相对应的，在一个典型游戏中，
+	往往会包含一些层：背景层、人物层、道具层、系统信息层。背景层：固定图片或地图，人物层：主角和各种小怪可以不断移动。
+	层与层之间互不干扰，各自管理层内的子节点。层继承节点的特性，可以在层中继承嵌套子层，例如人物层中又可以继续拆分为主角层、NPC层。
+
+	var layer = new cc.Layer();   	//新建一层
+	scene.addChild(layed);		//把层添加到场景上
+	layer.addChild(child);		//把子节点添加到这个层上
+		
+	addChild添加节点  removeChild移除某个节点
+ 
+     6.2  把层扩展成各种功能的面板
+
+	   Cocos2d-JS提供了两个常用的Layer给我们使用
+		LayerColor 	纯色背景的层
+		LayerGradient 	颜色渐变的层
+		
+		    例子：	
+			var layerColor = new cc.LayerColor(cc.color(255,255,255),100,100);
+			//新建一个纯白色 (宽和高) 都是100像素的背景，并添加到舞台上。
+			//cc.color()是一个全局函数，接收0-255的值，产生一个颜色值。如果不设置宽高，层将默认全屏大小 
+			this.addChild(layerColor);
+		
+		    例子：
+			var layerGradient = new cc.LayerGradient(cc.color(255,0,0),cc.color(0,0,255));
+			this.addChild(layerGradient);
+			
+		自定义层：
+			例子：	var HelloWorldLayer = cc.Layer.extend({
+					ctor:function(){
+						this._super();
+						var bg = new cc.Sprite(res.HelloWorld_png);
+						var size = cc.director.getWinSize();
+						bg.x = size.width/2;
+						bg.y = size.height/2;
+						this.addChild(bg,1);
+						return true;
+					}
+				})
+
+     6.3  Sprite(精灵)二维世界的人物
+		精灵也由Node扩展而成的，用于游戏中人物或NPC，因为精灵封装了图片加载等常用功能，我们还可以用精灵来加载背景图、障碍物等。
+		var ball = new cc.Sprite("res/item_2.png");    //传入图片路径
+		this.addChild(ball,0);
+		var size = cc.director.getWinSize();	//获得窗口的设计尺寸
+		ball.x = size.width/2;
+		ball.y = size.height/2;
+		
+		游戏中主角或NPC都可以使用精灵来加载。Sprite(精灵)替我们把图片处理的烦琐工作处理好了。我们只需设置精灵的位置和后续的动作。
+		在HTML5游戏中，我们还需更新resource.js，把所有图片路径添加到数组中，这样Cocos2d-js在初始化时会预加载这些资源，最后我们才能
+		正常新建精灵。
+			例子：	var res = {
+					bg:'res/bg.jpg',
+					item2:'res/item_2.png',
+					item3:'res/item_3.png'
+				};
+				var g_resources = [];
+				for (var i in res){
+					g_resources.push(res[i]);
+				}
+			自定义类：
+				var Plane = cc.Sprite.extend({
+					life:100,
+					ctor:function(imageURL){
+						this._super(imageURL);
+						this.life = 100;
+					},
+					onHit:function(){
+						this.life -= 20;
+					}
+				});
+
+		精灵可以嵌套精灵
+			var plane = new cc.Sprite("res/plane.png");
+			this.addChild(plane);
+			var tail = new cc.Sprite("res/tail.png");
+			plane.addChild(tail);
+			tail.x = -=50;
+			tail.y = 10;
+
+     6.4  层与精灵嵌套怎么设置坐标
+		Layer(层) 根据全局进行定位
+		Layer(层)内部也有一个局部坐标，再把精灵添加到层上，精灵将以层的局部坐标定位。
+		
+		   例子：	var bg = new cc.LayerColor(cc.color(100,100,100),200,200);
+				bg.x = 100;
+				bg.y = 100;
+				this.addChild(bg,1);
+				var ball = new cc.Sprite("res"/item_2.png);
+				ball.x = 100;
+				ball.y = 300;
+				this.addChild(ball,2);
+				var ball2 = new Sprite("res/item_3.png");
+				ball2.x = 100;
+				ball2.y = 100;
+				bg.addChild(ball2,1);
+      6.5  Director(导演)指挥一切
+		
+		6.5.1	场景的切换
+			cc.director.runScene	//加载或切换场景
+			runScene()	//会销毁旧场景上的所有内容，下次回到该场景时，所有内容都需要重新建立。
+			pushScene()	//跟runScene()用法一致，但并不销毁场景内容，而是把上一个场景存起来
+			popScene()	//则把当前场景销毁，然后快速回到上一个场景中，这时候只需要重新唤起原来的内容，并不需要重新建立。
+			
+
+
+			cc.TransitionSlideInT(2,SecondScene());		//在2秒内从上往下滑进舞台，旧场景也同时滑出
+			cc.TransitionSlideInL()				//从左往右
+			cc.TransitionSlideInR()				//从右往左
+			cc.TransitionSlideInB()				//从下往上
+			cc.TransitionMoveInB()				//从下往上移进(旧场景不会移动)
+			cc.TransitionRotoZoom()				//旧场景旋转变小消失，新场景旋转变大出现
+			cc.TransitionJumpZoom()				//旧场景缩小再跳跃离开，新场景跳跃进入
+			cc.TransitionShrinkGrow()			//旧场景变小，新场景在旁边逐渐变大
+			cc.TransitionFlipX()				//旧场景横向翻转，翻转后便是新场景
+			cc.TransitionFlipAngular()			//旧场景斜向旋转
+			cc.TransitionFade()				//旧场景逐渐变淡消失，新场景渐显出现
+			cc.TransitionTurnOffTiles()			//新场景直接出现在背后，而旧场景一马赛克方式逐渐消失
+			cc.TransitionSplitCols()			//画面分开3列，分别滑出滑进
+
+
+
+
+			
+			例子：	var SecondScene = cc.Scene.extend({	//自定义一个场景
+					onEnter:function(){
+						this._super();		//继承
+						var layer = new cc.LayerGradient(cc.color(255,0,0),cc.color(0,0,255));	//声明一个渐变层
+						this.addChild(layer);		//把层添加进场景里面
+					}
+				})	
+				var HelloWorldScene = cc.Scene.extend({
+					onEnter:function(){
+						this._super();
+						var layer = new HelloWorldLayer();
+						this.addChild(layer);
+						setTimeout(function(){
+							cc.director.runScene(new SecondScene());
+						})
+					}
+				})
+
+		6.5.2  director(导演)可以提供信息
+			getWinSize()		//窗口设计尺寸。(布局UI的时候特重要)
+			getVisibleSize()	//窗口实际尺寸。(适配手机屏幕的时候非常必要)
+			getScheduler()		//获取全局的定时器
+			pause/resume	//暂停/恢复场景
+
+     6.6  Cocos2d-js语法
+
+		6.6.1	js面向对象和继承
+			
+			例子：		var object = function(){}
+					var object1 = new object();
+					object1.name = 'object1';
+					var object2 = new object();
+					object2.name = 'object2';
+					console.log(object1.name,object2.name);
+			
+
+		6.6.2	this指向
+			
+			（1）：在对象中需要访问本对象的属性或方法都必须加入this前缀。
+			（2）：在绑定事件处理函数或定时器回调函数时，如果回调函数中使用了this，需要注意使用bind或传递this作为target参数
+
+7，动画
+
+	7.1  帧
+		帧是动画或影像的最基本单位，每一帧是一个画面，连续的多帧画面组合在一起播放就形成了影像。
+		电影一秒24帧
+		游戏60fps
+
+	7.2  逐帧变化
+		scheduleUpdate 
+		update
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
